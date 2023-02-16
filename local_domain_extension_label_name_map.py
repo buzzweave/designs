@@ -1,5 +1,5 @@
 from flair.data import Corpus
-from flair.datasets import CONLL_03, ColumnCorpus, WNUT_17
+from flair.datasets import CONLL_03, FEWNERD, WNUT_17, ColumnCorpus
 
 
 def get_corpus(name: str, map: str = "short", path: str = "/") -> Corpus:
@@ -107,24 +107,95 @@ def get_corpus(name: str, map: str = "short", path: str = "/") -> Corpus:
                 }
             )
 
+    if name == "fewnerd":
+        return FEWNERD(
+            label_name_map={
+                "location-GPE": "location geographical social political entity",
+                "person-other": "person other",
+                "organization-other": "organization other",
+                "organization-company": "organization company",
+                "person-artist/author": "person author artist",
+                "person-athlete": "person athlete",
+                "person-politician": "person politician",
+                "building-other": "building other",
+                "organization-sportsteam": "organization sportsteam",
+                "organization-education": "organization eduction",
+                "location-other": "location other",
+                "other-biologything": "other biology",
+                "location-road/railway/highway/transit": "location road railway highway transit",
+                "person-actor": "person actor",
+                "prodcut-other": "product other",
+                "event-sportsevent": "event sportsevent",
+                "organization-government/governmentagency": "organization government agency",
+                "location-bodiesofwater": "location bodies of water",
+                "organization-media/newspaper": "organization media newspaper",
+                "art-music": "art music",
+                "other-chemicalthing": "other chemical",
+                "event-attack/battle/war/militaryconflict": "event attack war battle military conflict",
+                "art-writtenart": "art written art",
+                "other-award": "other award",
+                "other-livingthing": "other living",
+                "event-other": "event other",
+                "art-film": "art film",
+                "product-software": "product software",
+                "organization-sportsleague": "organization sportsleague",
+                "other-language": "other language",
+                "other-disease": "other disease",
+                "organization-showorganization": "organization show organization",
+                "product-airplane": "product airplane",
+                "other-astronomything": "other astronomy",
+                "organization-religion": "organization religion",
+                "product-car": "product car",
+                "person-scholar": "person scholar",
+                "other-currency": "other currency",
+                "person-soldier": "person soldier",
+                "location-mountain": "location mountain",
+                "art-broadcastprogramm": "art broadcastprogramm",
+                "location-island": "location island",
+                "art-other": "art other",
+                "person-director": "person director",
+                "product-weapon": "product weapon",
+                "other-god": "other god",
+                "building-theater": "building theater",
+                "other-law": "other law",
+                "product-food": "product food",
+                "other-medical": "other medical",
+                "product-game": "product game",
+                "location-park": "location park",
+                "product-ship": "product ship",
+                "building-sportsfacility": "building sportsfacility",
+                "other-educationaldegree": "other educational degree",
+                "building-airport": "building airport",
+                "building-hospital": "building hospital",
+                "product-train": "product train",
+                "building-library": "building library",
+                "building-hotel": "building hotel",
+                "building-restaurant": "building restaurant",
+                "event-disaster": "event disaster",
+                "event-election": "event election",
+                "event-protest": "event protest",
+                "art-painting": "art painting",
+            }
+        )
+
 
 def get_label_name_map(corpus: str):
     if corpus == "conll03":
         label_name_map = {
-                    "LOC": "location",
-                    "ORG": "organization",
-                    "PER": "person",
-                    "MISC": "miscellaneous",
-                }
+            "LOC": "location",
+            "ORG": "organization",
+            "PER": "person",
+            "MISC": "miscellaneous",
+        }
     elif corpus == "wnut17":
         label_name_map = {
-                "location": "Location",
-                "corporation": "Corporation",
-                "person": "Person",
-                "creative-work": "Creative Work",
-                "product": "Product",
-                "group": "Group",
-            }
+            "location": "Location",
+            "corporation": "Corporation",
+            "person": "Person",
+            "creative-work": "Creative Work",
+            "product": "Product",
+            "group": "Group",
+        }
     else:
         raise Exception("unknown corpus")
     return label_name_map
