@@ -144,6 +144,7 @@ from .entity_linking import (
     WSD_TRAINOMATIC,
     WSD_UFSAC,
     WSD_WORDNET_GLOSS_TAGGED,
+    ZELDA,
 )
 
 # Expose all relation extraction datasets
@@ -167,6 +168,7 @@ from .sequence_labeling import (
     CONLL_03_GERMAN,
     CONLL_03_SPANISH,
     CONLL_2000,
+    FEWNERD,
     KEYPHRASE_INSPEC,
     KEYPHRASE_SEMEVAL2010,
     KEYPHRASE_SEMEVAL2017,
@@ -202,6 +204,7 @@ from .sequence_labeling import (
     NER_MULTI_WIKIANN,
     NER_MULTI_WIKINER,
     NER_MULTI_XTREME,
+    NER_NERMUD,
     NER_SWEDISH,
     NER_TURKU,
     NER_UKRAINIAN,
@@ -438,6 +441,7 @@ __all__ = [
     "CONLL_03_GERMAN",
     "CONLL_03_SPANISH",
     "CONLL_2000",
+    "FEWNERD",
     "KEYPHRASE_INSPEC",
     "KEYPHRASE_SEMEVAL2010",
     "KEYPHRASE_SEMEVAL2017",
@@ -467,6 +471,7 @@ __all__ = [
     "NER_ICDAR_EUROPEANA",
     "NER_ICELANDIC",
     "NER_JAPANESE",
+    "NER_NERMUD",
     "NER_MASAKHANE",
     "NER_MULTI_WIKIANN",
     "NER_MULTI_WIKINER",
@@ -558,4 +563,5 @@ __all__ = [
     "UD_WOLOF",
     "UniversalDependenciesCorpus",
     "UniversalDependenciesDataset",
+    "ZELDA",
 ]
