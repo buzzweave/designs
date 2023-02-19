@@ -7,7 +7,7 @@ def get_corpus(name: str, map: str = "short", path: str = "/") -> Corpus:
 
         if map == "short":
             return CONLL_03(
-                base_path=f"{path}/datasets",
+                base_path="data",
                 in_memory=True,
                 label_name_map={
                     "LOC": "location",
@@ -18,7 +18,7 @@ def get_corpus(name: str, map: str = "short", path: str = "/") -> Corpus:
             )
         if map == "long":
             return CONLL_03(
-                base_path=f"{path}/datasets",
+                base_path="data",
                 in_memory=True,
                 label_name_map={
                     "LOC": "location name",
