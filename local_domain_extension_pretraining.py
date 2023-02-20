@@ -36,7 +36,7 @@ def main(args):
         mini_batch_size=args.bs,
         mini_batch_chunk_size=args.mbs,
         train_with_dev=True,
-        monitor_test=True,
+        monitor_test=args.monitor_test,
     )
 
 
@@ -51,5 +51,6 @@ if __name__ == "__main__":
     parser.add_argument("--lr", type=float, default=5e-5)
     parser.add_argument("--bs", type=int, default=4)
     parser.add_argument("--mbs", type=int, default=2)
+    parser.add_argument("--monitor_test", type=bool, default=False)
     args = parser.parse_args()
     main(args)
