@@ -4,7 +4,6 @@ import logging
 import os
 import re
 import shutil
-import zipfile
 from collections import defaultdict
 from pathlib import Path
 from typing import (
@@ -807,6 +806,8 @@ class ColumnDataset(FlairDataset):
 
 
 class ONTONOTES(MultiFileColumnCorpus):
+    archive_url = "https://data.mendeley.com/public-files/datasets/zmycy7t9h9/files/b078e1c4-f7a4-4427-be7f-9389967831ef/file_downloaded"
+
     def __init__(
         self,
         base_path: Union[str, Path] = None,
@@ -937,12 +938,17 @@ class ONTONOTES(MultiFileColumnCorpus):
                     for raw_source_path in raw_domain_path.iterdir():
                         conll_files = sorted(raw_source_path.rglob("*gold_conll"))
 
-                        processed_source_path = processed_split_path / split / raw_domain_path.name / raw_source_path.name
+                        processed_source_path = (
+                            processed_split_path / split / raw_domain_path.name / raw_source_path.name
+                        )
                         processed_source_path.parent.mkdir(parents=True, exist_ok=True)
 
                         with open(processed_source_path, "w") as f:
                             for conll_file in conll_files:
                                 for sent in cls.sentence_iterator(conll_file):
+                                    if language == "arabic":
+                                        trimmed_sentence = [_sent.split("#")[0] for _sent in sent["sentence"]]
+                                        sent["sentence"] = trimmed_sentence
                                     for row in zip(sent["sentence"], sent["pos_tags"], sent["named_entities"]):
                                         f.write("\t".join(row) + "\n")
                                     f.write("\n")
@@ -957,10 +963,8 @@ class ONTONOTES(MultiFileColumnCorpus):
 
         data_folder = base_path / "conll-2012"
 
-        archive_url = "https://data.mendeley.com/public-files/datasets/zmycy7t9h9/files/b078e1c4-f7a4-4427-be7f-9389967831ef/file_downloaded"
-
         if not data_folder.exists():
-            unpack_file(cached_path(archive_url, data_folder), data_folder.parent, "zip", False)
+            unpack_file(cached_path(cls.archive_url, data_folder), data_folder.parent, "zip", False)
 
         return data_folder
 
@@ -1057,27 +1061,27 @@ class ONTONOTES(MultiFileColumnCorpus):
 
     @classmethod
     def _conll_rows_to_sentence(cls, conll_rows: List[str]) -> Dict:
-        document_id: str = None
-        sentence_id: int = None
+        document_id: str
+        sentence_id: int
         # The words in the sentence.
         sentence: List[str] = []
         # The pos tags of the words in the sentence.
         pos_tags: List[str] = []
         # the pieces of the parse tree.
-        parse_pieces: List[str] = []
+        parse_pieces: List[Optional[str]] = []
         # The lemmatised form of the words in the sentence which
         # have SRL or word sense information.
-        predicate_lemmas: List[str] = []
+        predicate_lemmas: List[Optional[str]] = []
         # The FrameNet ID of the predicate.
-        predicate_framenet_ids: List[str] = []
+        predicate_framenet_ids: List[Optional[str]] = []
         # The sense of the word, if available.
-        word_senses: List[float] = []
+        word_senses: List[Optional[float]] = []
         # The current speaker, if available.
-        speakers: List[str] = []
+        speakers: List[Optional[str]] = []
 
         verbal_predicates: List[str] = []
         span_labels: List[List[str]] = []
-        current_span_labels: List[str] = []
+        current_span_labels: List[Optional[str]] = []
 
         # Cluster id -> List of (start_index, end_index) spans.
         clusters: DefaultDict[int, List[Tuple[int, int]]] = defaultdict(list)
@@ -1091,7 +1095,8 @@ class ONTONOTES(MultiFileColumnCorpus):
             sentence_id = int(conll_components[1])
             word = conll_components[3]
             pos_tag = conll_components[4]
-            parse_piece = conll_components[5]
+
+            parse_piece: Optional[str]
 
             # Replace brackets in text and pos tags
             # with a different token for parse trees.
@@ -1106,7 +1111,7 @@ class ONTONOTES(MultiFileColumnCorpus):
                     pos_tag = "-LRB-"
                 if pos_tag == ")":
                     pos_tag = "-RRB-"
-                (left_brackets, right_hand_side) = parse_piece.split("*")
+                (left_brackets, right_hand_side) = conll_components[5].split("*")
                 # only keep ')' if there are nested brackets with nothing in them.
                 right_brackets = right_hand_side.count(")") * ")"
                 parse_piece = f"{left_brackets} ({pos_tag} {parse_word}) {right_brackets}"
@@ -1157,7 +1162,8 @@ class ONTONOTES(MultiFileColumnCorpus):
         srl_frames = [(predicate, labels) for predicate, labels in zip(verbal_predicates, span_labels[1:])]
 
         if all(parse_pieces):
-            parse_tree = "".join(parse_pieces)
+            # this would not be reached if parse_pieces contained None, hence the cast
+            parse_tree = "".join(cast(List[str], parse_pieces))
         else:
             parse_tree = None
         coref_span_tuples = {(cluster_id, span) for cluster_id, span_list in clusters.items() for span in span_list}

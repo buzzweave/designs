@@ -8,10 +8,10 @@ import flair.datasets
 from flair.data import MultiCorpus, Sentence
 from flair.datasets import ColumnCorpus
 from flair.datasets.sequence_labeling import (
+    ONTONOTES,
     JsonlCorpus,
     JsonlDataset,
     MultiFileJsonlCorpus,
-    ONTONOTES
 )
 
 
@@ -863,15 +863,18 @@ def test_jsonl_corpus_loads_spans(tasks_base_path):
     example = corpus.train[0]
     assert len(example.get_spans("ner")) > 0
 
+
 def test_ontonotes_download():
     from urllib.parse import urlparse
-    res = urlparse(
-        "https://data.mendeley.com/public-files/datasets/zmycy7t9h9/files/b078e1c4-f7a4-4427-be7f-9389967831ef/file_downloaded")
+
+    res = urlparse(ONTONOTES.archive_url)
     assert all([res.scheme, res.netloc])
+
 
 def test_ontonotes_extraction(tasks_base_path):
     import os
     import tempfile
+
     from flair.file_utils import unpack_file
 
     ontonotes_path = tasks_base_path / "ontonotes"
@@ -883,7 +886,7 @@ def test_ontonotes_extraction(tasks_base_path):
         label_dictionary = corpus.make_label_dictionary("ner")
 
         assert len(label_dictionary) == 15
-        assert label_dictionary.span_labels == True
+        assert label_dictionary.span_labels
 
         domain_specific_corpus = ONTONOTES(base_path=tmp_dir, domain=["bc"])
 
