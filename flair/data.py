@@ -1356,6 +1356,7 @@ class Corpus(typing.Generic[T_co]):
     ):
         import random
 
+        random.seed(seed)
         support_set_indices = []
 
         if n == -1:
