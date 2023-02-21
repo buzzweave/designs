@@ -73,7 +73,7 @@ def main(args):
                     "TIME": "time",
                     "WORK_OF_ART": "work of art",
                 }
-            ).to_nway_kshot(n=-1, k=args.k, tag_type="ner", seed=support_set_id)
+            ).to_nway_kshot(n=-1, k=args.k, tag_type="ner", seed=support_set_id, include_validation=False)
             full_corpus = few_shot_corpus
         else:
             raise Exception("no valid corpus.")
