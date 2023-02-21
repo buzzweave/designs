@@ -64,8 +64,10 @@ def main(args):
 
         trainer = ModelTrainer(model, few_shot_corpus)
 
+        save_path = f"{args.cache_path}/{args.transformer}_{args.corpus}_{args.lr}_{args.seed}{args.pretraining_corpus}/{args.k}shot_{support_set_id}"
+
         trainer.fine_tune(
-            f"{args.cache_path}/{args.transformer}_{args.corpus}_{args.lr}_{args.seed}/{args.k}shot_{support_set_id}",
+            save_path,
             learning_rate=args.lr,
             mini_batch_size=args.bs,
             mini_batch_chunk_size=args.mbs,
@@ -76,10 +78,10 @@ def main(args):
         result = model.evaluate(
             data_points=full_corpus.test,
             gold_label_type=tag_type,
-            out_path=f"{args.cache_path}/{args.transformer}_{args.corpus}_{args.lr}_{args.seed}/{args.k}shot_{support_set_id}/predictions.txt",
+            out_path=f"{save_path}/predictions.txt",
         )
         with open(
-            f"{args.cache_path}/{args.transformer}_{args.corpus}_{args.lr}_{args.seed}/{args.k}shot_{support_set_id}/result.txt",
+            f"{save_path}/result.txt",
             "w",
         ) as f:
             f.writelines(result.detailed_results)
@@ -99,6 +101,7 @@ if __name__ == "__main__":
         "--cache_path", type=str, default="/glusterfs/dfs-gfs-dist/goldejon/flair-models/fewshot-dual-encoder"
     )
     parser.add_argument("--corpus", type=str, default="conll_03")
+    parser.add_argument("--pretraining_corpus", type=str, default="")
     parser.add_argument("--k", type=int, default=1)
     parser.add_argument("--transformer", type=str, default="bert-base-cased")
     parser.add_argument("--lr", type=float, default=1e-5)
