@@ -1,7 +1,7 @@
 import argparse
 
 import flair
-from flair.datasets import CONLL_03, WNUT_17, ColumnCorpus
+from flair.datasets import CONLL_03, ONTONOTES, WNUT_17, ColumnCorpus
 from flair.models import DualEncoder
 from flair.trainers import ModelTrainer
 
@@ -51,6 +51,30 @@ def main(args):
                 column_format={0: "text", 1: "pos", 2: "chunk", 3: "ner"},
                 label_name_map={"PER": "person", "LOC": "location", "ORG": "organization", "MISC": "miscellaneous"},
             )
+        elif args.corpus == "ontonotes":
+            few_shot_corpus = ONTONOTES(
+                label_name_map={
+                    "CARDINAL": "cardinal",
+                    "DATE": "date",
+                    "EVENT": "event",
+                    "FAC": "facility",
+                    "GPE": "geographical social political entity",
+                    "LANGUAGE": "language",
+                    "LAW": "law",
+                    "LOC": "location",
+                    "MONEY": "money",
+                    "NORP": "nationality religion political",
+                    "ORDINAL": "ordinal",
+                    "ORG": "organization",
+                    "PERCENT": "percent",
+                    "PERSON": "person",
+                    "PRODUCT": "product",
+                    "QUANTITY": "quantity",
+                    "TIME": "time",
+                    "WORK_OF_ART": "work of art",
+                }
+            )
+            full_corpus = few_shot_corpus
         else:
             raise Exception("no valid corpus.")
 
