@@ -3,7 +3,7 @@ import argparse
 import numpy as np
 
 import flair
-from flair.datasets import ColumnCorpus
+from flair.datasets import ONTONOTES, ColumnCorpus
 from flair.models import FewshotClassifier, TARSTagger
 from flair.trainers import ModelTrainer
 from local_domain_extension_label_name_map import get_corpus, get_label_name_map
@@ -27,13 +27,18 @@ def main(args):
                 f"{args.cache_path}/flair-models/pretrained-tart/{args.transformer}_{args.pretraining_corpus}_{args.lr}-{args.seed}/final-model.pt - has this model been trained?"
             )
 
-        support_set = ColumnCorpus(
-            data_folder=f"data/fewshot/{args.fewshot_corpus}/{args.k}shot",
-            train_file=f"{split}.txt",
-            sample_missing_splits=False,
-            column_format={0: "text", 1: "ner"},
-            label_name_map=get_label_name_map(args.fewshot_corpus),
-        )
+        if args.fewshot_corpus == "ontonotes":
+            support_set = ONTONOTES(label_name_map=get_label_name_map(args.fewshow_corpus)).to_nway_kshot(
+                n=-1, k=args.k, tag_type="ner", seed=split
+            )
+        else:
+            support_set = ColumnCorpus(
+                data_folder=f"data/fewshot/{args.fewshot_corpus}/{args.k}shot",
+                train_file=f"{split}.txt",
+                sample_missing_splits=False,
+                column_format={0: "text", 1: "ner"},
+                label_name_map=get_label_name_map(args.fewshot_corpus),
+            )
         print(support_set)
 
         dictionary = support_set.make_label_dictionary("ner")
