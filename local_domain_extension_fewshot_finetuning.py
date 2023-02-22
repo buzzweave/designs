@@ -28,7 +28,7 @@ def main(args):
             )
 
         if args.fewshot_corpus == "ontonotes":
-            support_set = ONTONOTES(label_name_map=get_label_name_map(args.fewshow_corpus)).to_nway_kshot(
+            support_set = ONTONOTES(label_name_map=get_label_name_map(args.fewshot_corpus)).to_nway_kshot(
                 n=-1, k=args.k, tag_type="ner", seed=split
             )
         else:

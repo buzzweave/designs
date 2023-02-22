@@ -48,7 +48,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--cuda", type=bool, default=True)
     parser.add_argument("--cuda_device", type=int, default=0)
-    parser.add_argument("--seed", type=int, default=42)
+    parser.add_argument("--seed", type=int, default=123)
     parser.add_argument("--cache_path", type=str, default="/glusterfs/dfs-gfs-dist/goldejon")
     parser.add_argument("--pretraining_corpus", type=str, default="ontonotes")
     parser.add_argument("--pretrained_on", type=str, default="")
