@@ -81,6 +81,7 @@ if __name__ == "__main__":
     parser.add_argument("--seed", type=int, default=123)
     parser.add_argument("--cache_path", type=str, default="/glusterfs/dfs-gfs-dist/goldejon")
     parser.add_argument("--pretraining_corpus", type=str, default="ontonotes")
+    parser.add_argument("--pretrained_on", type=str, default="")
     parser.add_argument("--fewshot_corpus", type=str, default="conll03")
     parser.add_argument("--transformer", type=str, default="bert-base-uncased")
     parser.add_argument("--k", type=int, default=1)
