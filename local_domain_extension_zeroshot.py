@@ -22,25 +22,23 @@ def main(args):
         )
     except FileNotFoundError:
         raise FileNotFoundError(
-            f"{args.cache_path}/flair-models/pretrained-few-shot/{args.transformer}_{args.pretraining_corpus}_{args.lr}-{args.seed}/final-model.pt - has this model been trained?"
+            f"{args.cache_path}/flair-models/pretrained-tart/{args.transformer}_{args.pretraining_corpus}_{args.lr}-{args.seed}/final-model.pt - has this model been trained?"
         )
 
     tars_tagger.add_and_switch_to_new_task(task_name="zeroshot-short", label_dictionary=dictionary, label_type="ner")
 
-    if not os.path.exists(
-        f"{args.cache_path}/flair-models/fewshot-tart/{args.transformer}_{args.fewshot_corpus}_{args.lr}-{args.seed}/0shot"
-    ):
-        os.mkdir(
-            f"{args.cache_path}/flair-models/fewshot-tart/{args.transformer}_{args.fewshot_corpus}_{args.lr}-{args.seed}/0shot/"
-        )
+    save_path = f"{args.cache_path}/flair-models/fewshot-tart/{args.transformer}_{args.fewshot_corpus}_{args.lr}-{args.seed}{args.pretrained_on}/0shot"
+
+    if not os.path.exists(save_path):
+        os.mkdir(save_path)
 
     result = tars_tagger.evaluate(
         data_points=full_evaluation_dataset.test,
         gold_label_type="ner",
-        out_path=f"{args.cache_path}/flair-models/fewshot-tart/{args.transformer}_{args.fewshot_corpus}_{args.lr}-{args.seed}/0shot/predictions.txt",
+        out_path=f"{save_path}/predictions.txt",
     )
     with open(
-        f"{args.cache_path}/flair-models/fewshot-tart/{args.transformer}_{args.fewshot_corpus}_{args.lr}-{args.seed}/0shot/result.txt",
+        f"{save_path}/result.txt",
         "w",
     ) as f:
         f.write(result.detailed_results)
@@ -53,6 +51,7 @@ if __name__ == "__main__":
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--cache_path", type=str, default="/glusterfs/dfs-gfs-dist/goldejon")
     parser.add_argument("--pretraining_corpus", type=str, default="ontonotes")
+    parser.add_argument("--pretrained_on", type=str, default="")
     parser.add_argument("--fewshot_corpus", type=str, default="conll03")
     parser.add_argument("--transformer", type=str, default="bert-base-uncased")
     parser.add_argument("--lr", type=float, default=5e-5)
