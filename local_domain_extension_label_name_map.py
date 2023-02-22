@@ -196,6 +196,27 @@ def get_label_name_map(corpus: str):
             "product": "Product",
             "group": "Group",
         }
+    elif corpus == "ontonotes":
+        label_name_map = {
+            "CARDINAL": "cardinal",
+            "DATE": "date",
+            "EVENT": "event",
+            "FAC": "facility",
+            "GPE": "geo-political entity",
+            "LANGUAGE": "language",
+            "LAW": "law",
+            "LOC": "location",
+            "MONEY": "money",
+            "NORP": "affiliation",
+            "ORDINAL": "ordinal",
+            "ORG": "organization",
+            "PERCENT": "percent",
+            "PERSON": "person",
+            "PRODUCT": "product",
+            "QUANTITY": "quantity",
+            "TIME": "time",
+            "WORK_OF_ART": "work of Art",
+        }
     elif corpus == "fewnerd":
         label_name_map = {
             "location-GPE": "location geographical social political entity",
