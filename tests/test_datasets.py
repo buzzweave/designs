@@ -943,3 +943,41 @@ def test_empty_corpus_should_raise_error():
         MultiFileJsonlCorpus(None, None, None)
 
     assert str(err.value) == "No data provided when initializing corpus object."
+
+
+@pytest.mark.parametrize("n,k", [(-1, 1), (0, 1), (1, 1), (2, 1), (4, 1), (4, 2), (6, 2)])
+def test_nway_kshot_sequence_labeling(tasks_base_path, n, k):
+    from flair.datasets import WNUT_17
+
+    corpus = WNUT_17().to_nway_kshot(n=n, k=k, tag_type="ner", include_validation=False)
+    if n == -1:
+        label_dict = corpus.make_label_dictionary("ner", add_unk=False)
+        assert len(label_dict) == 6
+        assert len(corpus.train) < 2 * k * 6
+    elif n == 0:
+        with pytest.raises(AssertionError) as err:
+            label_dict = corpus.make_label_dictionary("ner", add_unk=False)
+        assert err.type == AssertionError
+    else:
+        label_dict = corpus.make_label_dictionary("ner", add_unk=False)
+        assert len(label_dict) == n
+        assert len(corpus.train) < 2 * k * n
+
+
+@pytest.mark.parametrize("n,k", [(-1, 1), (0, 1), (10, 1), (25, 1), (10, 10), (25, 10)])
+def test_nway_kshot_text_classification(tasks_base_path, n, k):
+    from flair.datasets import TREC_50
+
+    corpus = TREC_50().to_nway_kshot(n=n, k=k, tag_type="class", include_validation=False)
+    if n == -1:
+        label_dict = corpus.make_label_dictionary("class", add_unk=False)
+        assert len(label_dict) == 50
+        assert len(corpus.train) < 2 * k * 50
+    elif n == 0:
+        with pytest.raises(AssertionError) as err:
+            label_dict = corpus.make_label_dictionary("class", add_unk=False)
+        assert err.type == AssertionError
+    else:
+        label_dict = corpus.make_label_dictionary("class", add_unk=False)
+        assert len(label_dict) == n
+        assert len(corpus.train) < 2 * k * n

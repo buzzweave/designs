@@ -1237,6 +1237,24 @@ class Corpus(typing.Generic[T_co]):
 
         return self
 
+    def to_nway_kshot(self, n: int, k: int, tag_type: str, include_validation: bool = True, seed: Optional[int] = None):
+        label_dict = self.make_label_dictionary(tag_type, add_unk=False)
+        labels = [label.decode("utf-8") for label in label_dict.idx2item]
+
+        if self._train is not None:
+            self._train = self._sample_n_way_k_shots(
+                dataset=self._train, labels=labels, tag_type=tag_type, n=n, k=k, seed=seed
+            )
+
+        if self._dev is not None and include_validation:
+            self._dev = self._sample_n_way_k_shots(
+                dataset=self._dev, labels=labels, tag_type=tag_type, n=n, k=k, seed=seed
+            )
+        else:
+            self._dev = None
+
+        return self
+
     def filter_empty_sentences(self):
         log.info("Filtering empty sentences")
         if self._train is not None:
@@ -1331,6 +1349,42 @@ class Corpus(typing.Generic[T_co]):
         sampled_size: int = round(_len_dataset(dataset) * proportion)
         splits = randomly_split_into_two_datasets(dataset, sampled_size)
         return splits[0]
+
+    @staticmethod
+    def _sample_n_way_k_shots(
+        dataset: Dataset, labels: List[str], tag_type: str, n: int, k: int, seed: Optional[int] = None
+    ):
+        import random
+
+        support_set_indices = []
+
+        if n == -1:
+            counter = {label: 0 for label in labels}
+        else:
+            counter = {label: 0 for label in random.sample(labels, k=n)}
+
+        sentences = [(_idx, _sentence) for _idx, _sentence in enumerate(dataset)]
+
+        while not all(count >= k for count in counter.values()):
+            data_point_id, data_point = random.sample(sentences, k=1)[0]
+            labels_for_data_point = [label.value for label in data_point.get_labels(tag_type)]
+            counter_if_data_point_added = {
+                label: current_count + 1 if label in labels_for_data_point else current_count
+                for label, current_count in counter.items()
+            }
+
+            if (
+                any([count >= 2 * k for count in counter_if_data_point_added.values()])
+                or any([label not in counter.keys() for label in labels_for_data_point])
+                or not labels_for_data_point
+            ):
+                continue
+
+            else:
+                support_set_indices.append(data_point_id)
+                counter = counter_if_data_point_added
+
+        return Subset(dataset, support_set_indices)
 
     def obtain_statistics(self, label_type: str = None, pretty_print: bool = True) -> Union[dict, str]:
         """
