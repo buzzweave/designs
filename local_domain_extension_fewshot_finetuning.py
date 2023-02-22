@@ -29,7 +29,7 @@ def main(args):
 
         if args.fewshot_corpus == "ontonotes":
             support_set = ONTONOTES(label_name_map=get_label_name_map(args.fewshot_corpus)).to_nway_kshot(
-                n=-1, k=args.k, tag_type="ner", seed=split
+                n=-1, k=args.k, tag_type="ner", seed=split, include_validation=False
             )
         else:
             support_set = ColumnCorpus(
