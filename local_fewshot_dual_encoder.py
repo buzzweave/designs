@@ -1,5 +1,7 @@
 import argparse
 
+import numpy as np
+
 import flair
 from flair.datasets import CONLL_03, ONTONOTES, WNUT_17, ColumnCorpus
 from flair.models import DualEncoder
@@ -10,6 +12,7 @@ def main(args):
     if args.cuda:
         flair.device = f"cuda:{args.cuda_device}"
 
+    average_result = []
     for support_set_id in range(5):
         if args.corpus == "wnut_17":
             few_shot_corpus = ColumnCorpus(
@@ -114,6 +117,19 @@ def main(args):
             "w",
         ) as f:
             f.writelines(result.detailed_results)
+
+        average_result.append(result.main_score)
+
+    average_result = [round(float(score) * 100, 2) for score in average_result]
+    with open(
+        f"{args.cache_path}/fewshot-dual-encoder/"
+        f"{args.transformer}_{args.corpus}_{args.lr}_{args.seed}_pretrained_on{args.pretraining_corpus}{args.fewnerd_granularity}/"
+        f"average_1shot.txt",
+        "w",
+    ) as f:
+        f.write(f"all results: {average_result} \n")
+        f.write(f"average: {np.mean(average_result)} \n")
+        f.write(f"std: {np.std(average_result)} \n")
 
 
 if __name__ == "__main__":
