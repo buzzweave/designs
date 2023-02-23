@@ -109,7 +109,7 @@ def main(args):
                 mini_batch_chunk_size=args.mbs,
                 max_epochs=args.epochs,
                 train_with_dev=args.early_stopping,
-                min_lr=5e-6 if args.early_stopping else 0.001,
+                min_learning_rate=5e-6 if args.early_stopping else 0.001,
                 patience=5 if args.early_stopping else 3,
                 save_final_model=False,
             )
