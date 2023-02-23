@@ -96,7 +96,9 @@ def main(args):
 
             save_path = (
                 f"{args.cache_path}/fewshot-dual-encoder/"
-                f"{args.transformer}_{args.corpus}_{args.lr}_{args.seed}_pretrained_on{args.pretraining_corpus}{args.fewnerd_granularity}/"
+                f"{args.transformer}_{args.corpus}_{args.lr}_{args.seed}"
+                f"_pretrained_on{args.pretraining_corpus}{args.fewnerd_granularity}"
+                f"{'_with_early_stopping' if args.early_stopping else ''}/"
                 f"{args.k}shot_{support_set_id}"
             )
 
@@ -106,6 +108,9 @@ def main(args):
                 mini_batch_size=args.bs,
                 mini_batch_chunk_size=args.mbs,
                 max_epochs=args.epochs,
+                train_with_dev=args.early_stopping,
+                min_lr=5e-6 if args.early_stopping else 0.001,
+                patience=5 if args.early_stopping else 3,
                 save_final_model=False,
             )
 
@@ -221,5 +226,6 @@ if __name__ == "__main__":
     parser.add_argument("--bs", type=int, default=4)
     parser.add_argument("--mbs", type=int, default=4)
     parser.add_argument("--epochs", type=int, default=200)
+    parser.add_argument("--early_stopping", type=bool, default=False)
     args = parser.parse_args()
     main(args)
