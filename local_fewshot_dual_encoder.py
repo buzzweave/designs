@@ -83,12 +83,17 @@ def main(args):
         # force spans == true, there is one split containing only B-*'s
         label_dictionary.span_labels = True
 
-        model = DualEncoder.load(args.pretrained_model)
+        pretrained_model_path = f"{args.cache_path}/pretrained-dual-encoder/{args.transformer}_{args.pretraining_corpus}{args.fewnerd_granularity}_{args.lr}_{args.seed}/final-model.pt"
+        model = DualEncoder.load(pretrained_model_path)
         model._init_verbalizers_and_tag_dictionary(tag_dictionary=label_dictionary)
 
         trainer = ModelTrainer(model, few_shot_corpus)
 
-        save_path = f"{args.cache_path}/{args.transformer}_{args.corpus}_{args.lr}_{args.seed}{args.pretraining_corpus}/{args.k}shot_{support_set_id}"
+        save_path = (
+            f"{args.cache_path}/fewshot-dual-encoder/"
+            f"{args.transformer}_{args.corpus}_{args.lr}_{args.seed}_pretrained_on{args.pretraining_corpus}{args.fewnerd_granularity}/"
+            f"{args.k}shot_{support_set_id}"
+        )
 
         trainer.fine_tune(
             save_path,
@@ -116,16 +121,10 @@ if __name__ == "__main__":
     parser.add_argument("--cuda", type=bool, default=True)
     parser.add_argument("--cuda_device", type=int, default=2)
     parser.add_argument("--seed", type=int, default=123)
-    parser.add_argument(
-        "--pretrained_model",
-        type=str,
-        default="/glusterfs/dfs-gfs-dist/goldejon/flair-models/pretrained-dual-encoder/bert-base-cased_ontonotes_1e-05_123/final-model.pt",
-    )
-    parser.add_argument(
-        "--cache_path", type=str, default="/glusterfs/dfs-gfs-dist/goldejon/flair-models/fewshot-dual-encoder"
-    )
+    parser.add_argument("--cache_path", type=str, default="/glusterfs/dfs-gfs-dist/goldejon/flair-models")
     parser.add_argument("--corpus", type=str, default="conll_03")
-    parser.add_argument("--pretraining_corpus", type=str, default="")
+    parser.add_argument("--pretraining_corpus", type=str, default="ontonotes")
+    parser.add_argument("--fewnerd_granularity", type=str, default="")
     parser.add_argument("--k", type=int, default=1)
     parser.add_argument("--transformer", type=str, default="bert-base-cased")
     parser.add_argument("--lr", type=float, default=1e-5)
