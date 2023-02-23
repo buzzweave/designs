@@ -1,4 +1,5 @@
 import argparse
+import os
 
 import numpy as np
 
@@ -189,6 +190,9 @@ def main(args):
             f"{args.transformer}_{args.corpus}_{args.lr}_{args.seed}_pretrained_on{args.pretraining_corpus}{args.fewnerd_granularity}/"
             f"0shot"
         )
+
+        if not os.path.exists(save_path):
+            os.mkdir(save_path)
 
         result = model.evaluate(
             data_points=full_corpus.test,
