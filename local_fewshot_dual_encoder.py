@@ -112,8 +112,7 @@ def main(args):
                 max_epochs=args.epochs,
                 scheduler=AnnealOnPlateau if args.early_stopping else LinearSchedulerWithWarmup,
                 train_with_dev=args.early_stopping,
-                min_learning_rate=5e-6 if args.early_stopping else 0.001,
-                patience=5 if args.early_stopping else 3,
+                min_learning_rate=1e-7 if args.early_stopping else 0.001,
                 save_final_model=False,
             )
 
@@ -133,7 +132,9 @@ def main(args):
         average_result = [round(float(score) * 100, 2) for score in average_result]
         with open(
             f"{args.cache_path}/fewshot-dual-encoder/"
-            f"{args.transformer}_{args.corpus}_{args.lr}_{args.seed}_pretrained_on{args.pretraining_corpus}{args.fewnerd_granularity}/"
+            f"{args.transformer}_{args.corpus}_{args.lr}_{args.seed}"
+            f"_pretrained_on{args.pretraining_corpus}{args.fewnerd_granularity}"
+            f"{'_with_early_stopping' if args.early_stopping else ''}/"
             f"{args.k}shot.txt",
             "w",
         ) as f:
