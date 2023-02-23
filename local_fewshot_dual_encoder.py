@@ -13,23 +13,126 @@ def main(args):
         flair.device = f"cuda:{args.cuda_device}"
 
     average_result = []
-    for support_set_id in range(5):
-        if args.corpus == "wnut_17":
-            few_shot_corpus = ColumnCorpus(
-                data_folder=f"data/fewshot/wnut17/{args.k}shot/",
-                train_file=f"{support_set_id}.txt",
-                column_format={0: "text", 1: "ner"},
-                sample_missing_splits=False,
-                label_name_map={
-                    "corporation": "corporation",
-                    "creative-work": "creative work",
-                    "group": "group",
-                    "location": "location",
-                    "person": "person",
-                    "product": "product",
-                },
+    if args.k > 0:
+        for support_set_id in range(5):
+            if args.corpus == "wnut_17":
+                few_shot_corpus = ColumnCorpus(
+                    data_folder=f"data/fewshot/wnut17/{args.k}shot/",
+                    train_file=f"{support_set_id}.txt",
+                    column_format={0: "text", 1: "ner"},
+                    sample_missing_splits=False,
+                    label_name_map={
+                        "corporation": "corporation",
+                        "creative-work": "creative work",
+                        "group": "group",
+                        "location": "location",
+                        "person": "person",
+                        "product": "product",
+                    },
+                )
+
+                full_corpus = WNUT_17(
+                    label_name_map={
+                        "corporation": "corporation",
+                        "creative-work": "creative work",
+                        "group": "group",
+                        "location": "location",
+                        "person": "person",
+                        "product": "product",
+                    }
+                )
+            elif args.corpus == "conll_03":
+                few_shot_corpus = ColumnCorpus(
+                    data_folder=f"data/fewshot/conll03/{args.k}shot/",
+                    train_file=f"{support_set_id}.txt",
+                    column_format={0: "text", 1: "ner"},
+                    sample_missing_splits=False,
+                    label_name_map={"PER": "person", "LOC": "location", "ORG": "organization", "MISC": "miscellaneous"},
+                )
+
+                full_corpus = CONLL_03(
+                    base_path="data",
+                    column_format={0: "text", 1: "pos", 2: "chunk", 3: "ner"},
+                    label_name_map={"PER": "person", "LOC": "location", "ORG": "organization", "MISC": "miscellaneous"},
+                )
+            elif args.corpus == "ontonotes":
+                few_shot_corpus = ONTONOTES(
+                    label_name_map={
+                        "CARDINAL": "cardinal",
+                        "DATE": "date",
+                        "EVENT": "event",
+                        "FAC": "facility",
+                        "GPE": "geographical social political entity",
+                        "LANGUAGE": "language",
+                        "LAW": "law",
+                        "LOC": "location",
+                        "MONEY": "money",
+                        "NORP": "nationality religion political",
+                        "ORDINAL": "ordinal",
+                        "ORG": "organization",
+                        "PERCENT": "percent",
+                        "PERSON": "person",
+                        "PRODUCT": "product",
+                        "QUANTITY": "quantity",
+                        "TIME": "time",
+                        "WORK_OF_ART": "work of art",
+                    }
+                ).to_nway_kshot(n=-1, k=args.k, tag_type="ner", seed=support_set_id, include_validation=False)
+                full_corpus = few_shot_corpus
+            else:
+                raise Exception("no valid corpus.")
+
+            tag_type = "ner"
+            label_dictionary = few_shot_corpus.make_label_dictionary(tag_type, add_unk=False)
+            # force spans == true, there is one split containing only B-*'s
+            label_dictionary.span_labels = True
+
+            pretrained_model_path = f"{args.cache_path}/pretrained-dual-encoder/{args.transformer}_{args.pretraining_corpus}{args.fewnerd_granularity}_{args.lr}_{args.seed}/final-model.pt"
+            model = DualEncoder.load(pretrained_model_path)
+            model._init_verbalizers_and_tag_dictionary(tag_dictionary=label_dictionary)
+
+            trainer = ModelTrainer(model, few_shot_corpus)
+
+            save_path = (
+                f"{args.cache_path}/fewshot-dual-encoder/"
+                f"{args.transformer}_{args.corpus}_{args.lr}_{args.seed}_pretrained_on{args.pretraining_corpus}{args.fewnerd_granularity}/"
+                f"{args.k}shot_{support_set_id}"
             )
 
+            trainer.fine_tune(
+                save_path,
+                learning_rate=args.lr,
+                mini_batch_size=args.bs,
+                mini_batch_chunk_size=args.mbs,
+                max_epochs=args.epochs,
+                save_final_model=False,
+            )
+
+            result = model.evaluate(
+                data_points=full_corpus.test,
+                gold_label_type=tag_type,
+                out_path=f"{save_path}/predictions.txt",
+            )
+            with open(
+                f"{save_path}/result.txt",
+                "w",
+            ) as f:
+                f.writelines(result.detailed_results)
+
+            average_result.append(result.main_score)
+
+        average_result = [round(float(score) * 100, 2) for score in average_result]
+        with open(
+            f"{args.cache_path}/fewshot-dual-encoder/"
+            f"{args.transformer}_{args.corpus}_{args.lr}_{args.seed}_pretrained_on{args.pretraining_corpus}{args.fewnerd_granularity}/"
+            f"{args.k}shot.txt",
+            "w",
+        ) as f:
+            f.write(f"all results: {average_result} \n")
+            f.write(f"average: {np.mean(average_result)} \n")
+            f.write(f"std: {np.std(average_result)} \n")
+    elif args.k == 0:
+        if args.corpus == "wnut_17":
             full_corpus = WNUT_17(
                 label_name_map={
                     "corporation": "corporation",
@@ -41,21 +144,13 @@ def main(args):
                 }
             )
         elif args.corpus == "conll_03":
-            few_shot_corpus = ColumnCorpus(
-                data_folder=f"data/fewshot/conll03/{args.k}shot/",
-                train_file=f"{support_set_id}.txt",
-                column_format={0: "text", 1: "ner"},
-                sample_missing_splits=False,
-                label_name_map={"PER": "person", "LOC": "location", "ORG": "organization", "MISC": "miscellaneous"},
-            )
-
             full_corpus = CONLL_03(
                 base_path="data",
                 column_format={0: "text", 1: "pos", 2: "chunk", 3: "ner"},
                 label_name_map={"PER": "person", "LOC": "location", "ORG": "organization", "MISC": "miscellaneous"},
             )
         elif args.corpus == "ontonotes":
-            few_shot_corpus = ONTONOTES(
+            full_corpus = ONTONOTES(
                 label_name_map={
                     "CARDINAL": "cardinal",
                     "DATE": "date",
@@ -76,13 +171,12 @@ def main(args):
                     "TIME": "time",
                     "WORK_OF_ART": "work of art",
                 }
-            ).to_nway_kshot(n=-1, k=args.k, tag_type="ner", seed=support_set_id, include_validation=False)
-            full_corpus = few_shot_corpus
+            )
         else:
             raise Exception("no valid corpus.")
 
         tag_type = "ner"
-        label_dictionary = few_shot_corpus.make_label_dictionary(tag_type, add_unk=False)
+        label_dictionary = full_corpus.make_label_dictionary(tag_type, add_unk=False)
         # force spans == true, there is one split containing only B-*'s
         label_dictionary.span_labels = True
 
@@ -90,21 +184,10 @@ def main(args):
         model = DualEncoder.load(pretrained_model_path)
         model._init_verbalizers_and_tag_dictionary(tag_dictionary=label_dictionary)
 
-        trainer = ModelTrainer(model, few_shot_corpus)
-
         save_path = (
             f"{args.cache_path}/fewshot-dual-encoder/"
             f"{args.transformer}_{args.corpus}_{args.lr}_{args.seed}_pretrained_on{args.pretraining_corpus}{args.fewnerd_granularity}/"
-            f"{args.k}shot_{support_set_id}"
-        )
-
-        trainer.fine_tune(
-            save_path,
-            learning_rate=args.lr,
-            mini_batch_size=args.bs,
-            mini_batch_chunk_size=args.mbs,
-            max_epochs=args.epochs,
-            save_final_model=False,
+            f"0shot"
         )
 
         result = model.evaluate(
@@ -117,19 +200,6 @@ def main(args):
             "w",
         ) as f:
             f.writelines(result.detailed_results)
-
-        average_result.append(result.main_score)
-
-    average_result = [round(float(score) * 100, 2) for score in average_result]
-    with open(
-        f"{args.cache_path}/fewshot-dual-encoder/"
-        f"{args.transformer}_{args.corpus}_{args.lr}_{args.seed}_pretrained_on{args.pretraining_corpus}{args.fewnerd_granularity}/"
-        f"{args.k}shot.txt",
-        "w",
-    ) as f:
-        f.write(f"all results: {average_result} \n")
-        f.write(f"average: {np.mean(average_result)} \n")
-        f.write(f"std: {np.std(average_result)} \n")
 
 
 if __name__ == "__main__":
