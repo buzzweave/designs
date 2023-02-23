@@ -6,7 +6,9 @@ import numpy as np
 import flair
 from flair.datasets import CONLL_03, ONTONOTES, WNUT_17, ColumnCorpus
 from flair.models import DualEncoder
+from flair.optim import LinearSchedulerWithWarmup
 from flair.trainers import ModelTrainer
+from flair.training_utils import AnnealOnPlateau
 
 
 def main(args):
@@ -108,6 +110,7 @@ def main(args):
                 mini_batch_size=args.bs,
                 mini_batch_chunk_size=args.mbs,
                 max_epochs=args.epochs,
+                scheduler=AnnealOnPlateau if args.early_stopping else LinearSchedulerWithWarmup,
                 train_with_dev=args.early_stopping,
                 min_learning_rate=5e-6 if args.early_stopping else 0.001,
                 patience=5 if args.early_stopping else 3,
