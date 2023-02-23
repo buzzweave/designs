@@ -124,7 +124,7 @@ def main(args):
     with open(
         f"{args.cache_path}/fewshot-dual-encoder/"
         f"{args.transformer}_{args.corpus}_{args.lr}_{args.seed}_pretrained_on{args.pretraining_corpus}{args.fewnerd_granularity}/"
-        f"average_1shot.txt",
+        f"{args.k}shot.txt",
         "w",
     ) as f:
         f.write(f"all results: {average_result} \n")
