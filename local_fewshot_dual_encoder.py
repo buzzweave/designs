@@ -90,7 +90,7 @@ def main(args):
             # force spans == true, there is one split containing only B-*'s
             label_dictionary.span_labels = True
 
-            pretrained_model_path = f"{args.cache_path}/pretrained-dual-encoder/{args.transformer}_{args.pretraining_corpus}{args.fewnerd_granularity}_{args.lr}_{args.seed}/final-model.pt"
+            pretrained_model_path = f"{args.cache_path}/pretrained-dual-encoder/{args.transformer}_{args.pretraining_corpus}{args.fewnerd_granularity}_{args.pretraining_lr}_{args.seed}/final-model.pt"
             model = DualEncoder.load(pretrained_model_path)
             model._init_verbalizers_and_tag_dictionary(tag_dictionary=label_dictionary)
 
@@ -190,7 +190,7 @@ def main(args):
         # force spans == true, there is one split containing only B-*'s
         label_dictionary.span_labels = True
 
-        pretrained_model_path = f"{args.cache_path}/pretrained-dual-encoder/{args.transformer}_{args.pretraining_corpus}{args.fewnerd_granularity}_{args.lr}_{args.seed}/final-model.pt"
+        pretrained_model_path = f"{args.cache_path}/pretrained-dual-encoder/{args.transformer}_{args.pretraining_corpus}{args.fewnerd_granularity}_{args.pretraing_lr}_{args.seed}/final-model.pt"
         model = DualEncoder.load(pretrained_model_path)
         model._init_verbalizers_and_tag_dictionary(tag_dictionary=label_dictionary)
 
@@ -223,6 +223,7 @@ if __name__ == "__main__":
     parser.add_argument("--cache_path", type=str, default="/glusterfs/dfs-gfs-dist/goldejon/flair-models")
     parser.add_argument("--corpus", type=str, default="conll_03")
     parser.add_argument("--pretraining_corpus", type=str, default="ontonotes")
+    parser.add_argument("--pretraining_lr", type=float, default=1e-5)
     parser.add_argument("--fewnerd_granularity", type=str, default="")
     parser.add_argument("--k", type=int, default=1)
     parser.add_argument("--transformer", type=str, default="bert-base-cased")
