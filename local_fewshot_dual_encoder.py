@@ -112,7 +112,7 @@ def main(args):
                 max_epochs=args.epochs,
                 scheduler=AnnealOnPlateau if args.early_stopping else LinearSchedulerWithWarmup,
                 train_with_dev=args.early_stopping,
-                min_learning_rate=1e-7 if args.early_stopping else 0.001,
+                min_learning_rate=args.min_lr if args.early_stopping else 0.001,
                 save_final_model=False,
             )
 
@@ -231,5 +231,6 @@ if __name__ == "__main__":
     parser.add_argument("--mbs", type=int, default=4)
     parser.add_argument("--epochs", type=int, default=200)
     parser.add_argument("--early_stopping", type=bool, default=False)
+    parser.add_argument("--min_lr", type=float, default=1e-7)
     args = parser.parse_args()
     main(args)
