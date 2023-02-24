@@ -1,4 +1,5 @@
 import argparse
+from pathlib import Path
 
 import numpy as np
 
@@ -15,17 +16,24 @@ def main(args):
     if args.cuda:
         flair.device = f"cuda:{args.cuda_device}"
 
-    full_corpus = get_corpus(name=args.fewshot_corpus, map="short", path=args.cache_path)
+    full_corpus = get_corpus(name=args.fewshot_corpus, map=args.label_map_type)
     average_over_support_sets = []
+    base_save_path = Path(
+        f"{args.cache_path}/flair-models/fewshot-tart/"
+        f"{args.transformer}_{args.fewshot_corpus}_{args.lr}_{args.seed}"
+        f"_pretrained_on_{args.pretraining_corpus}{f'_{args.fewnerd_granularity}' if args.fewnerd_granularity != '' else ''}"
+        f"/{args.k}shot/"
+    )
     for split in range(args.splits):
+        target_path = (
+            f"{args.cache_path}/flair-models/pretrained-tart/"
+            f"{args.transformer}_{args.pretraining_corpus}{f'_{args.fewnerd_granularity}' if args.fewnerd_granularity != '' else ''}"
+            f"_{args.lr}-{args.seed}/final-model.pt"
+        )
         try:
-            tars_tagger: FewshotClassifier = TARSTagger.load(
-                f"{args.cache_path}/flair-models/pretrained-tart/{args.transformer}_{args.pretraining_corpus}_{args.lr}-{args.seed}/final-model.pt"
-            )
+            tars_tagger: FewshotClassifier = TARSTagger.load(target_path)
         except FileNotFoundError:
-            raise FileNotFoundError(
-                f"{args.cache_path}/flair-models/pretrained-tart/{args.transformer}_{args.pretraining_corpus}_{args.lr}-{args.seed}/final-model.pt - has this model been trained?"
-            )
+            raise FileNotFoundError(f"{target_path} - has this model been trained?")
 
         if args.fewshot_corpus == "ontonotes":
             support_set = ONTONOTES(label_name_map=get_label_name_map(args.fewshot_corpus)).to_nway_kshot(
@@ -45,15 +53,13 @@ def main(args):
         print(dictionary)
 
         tars_tagger.add_and_switch_to_new_task(
-            task_name="fewshot-conll-short", label_dictionary=dictionary, label_type="ner", force_switch=True
+            task_name="fewshot", label_dictionary=dictionary, label_type="ner", force_switch=True
         )
 
         trainer = ModelTrainer(tars_tagger, support_set)
 
-        save_path = f"{args.cache_path}/flair-models/fewshot-tart/{args.transformer}_{args.fewshot_corpus}_{args.lr}-{args.seed}{args.pretrained_on}/{args.k}shot/split_{split}"
-
         trainer.fine_tune(
-            save_path,
+            base_save_path / f"split_{split}",
             learning_rate=args.lr,
             mini_batch_size=args.bs,
             mini_batch_chunk_size=args.mbs,
@@ -62,15 +68,17 @@ def main(args):
         )
 
         result = tars_tagger.evaluate(
-            data_points=full_corpus.test, gold_label_type="ner", out_path=f"{save_path}/predictions.txt"
+            data_points=full_corpus.test,
+            gold_label_type="ner",
+            out_path=f"{base_save_path / f'split_{split}'}/predictions.txt",
         )
-        with open(f"{save_path}/result.txt", "w") as f:
+        with open(f"{base_save_path / f'split_{split}'}/result.txt", "w") as f:
             f.write(result.detailed_results)
 
         average_over_support_sets.append(result.main_score)
 
     with open(
-        f"{args.cache_path}/flair-models/fewshot-tart/{args.transformer}_{args.fewshot_corpus}_{args.lr}-{args.seed}{args.pretrained_on}/{args.k}shot/average_result.txt",
+        f"{base_save_path}/average_result.txt",
         "w",
     ) as f:
         results = [round(float(x) * 100, 2) for x in average_over_support_sets]
@@ -86,8 +94,8 @@ if __name__ == "__main__":
     parser.add_argument("--seed", type=int, default=123)
     parser.add_argument("--cache_path", type=str, default="/glusterfs/dfs-gfs-dist/goldejon")
     parser.add_argument("--pretraining_corpus", type=str, default="ontonotes")
-    parser.add_argument("--pretrained_on", type=str, default="")
-    parser.add_argument("--fewshot_corpus", type=str, default="conll03")
+    parser.add_argument("--corpus", type=str, default="conll03")
+    parser.add_argument("--label_map_type", type=str, default="short")
     parser.add_argument("--transformer", type=str, default="bert-base-uncased")
     parser.add_argument("--k", type=int, default=1)
     parser.add_argument("--splits", type=int, default=5)
@@ -95,5 +103,9 @@ if __name__ == "__main__":
     parser.add_argument("--bs", type=int, default=4)
     parser.add_argument("--mbs", type=int, default=4)
     parser.add_argument("--epochs", type=int, default=200)
+    parser.add_argument("--early_stopping", type=bool, default=False)
+    parser.add_argument("--min_lr", type=float, default=1e-7)
+    parser.add_argument("--pretraining_lr", type=float, default=1e-5)
+    parser.add_argument("--fewnerd_granularity", type=str, default="")
     args = parser.parse_args()
     main(args)
