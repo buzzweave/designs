@@ -16,11 +16,11 @@ def main(args):
     if args.cuda:
         flair.device = f"cuda:{args.cuda_device}"
 
-    full_corpus = get_corpus(name=args.fewshot_corpus, map=args.label_map_type)
+    full_corpus = get_corpus(name=args.corpus, map=args.label_map_type)
     average_over_support_sets = []
     base_save_path = Path(
         f"{args.cache_path}/flair-models/fewshot-tart/"
-        f"{args.transformer}_{args.fewshot_corpus}_{args.lr}_{args.seed}"
+        f"{args.transformer}_{args.corpus}_{args.lr}_{args.seed}"
         f"_pretrained_on_{args.pretraining_corpus}{f'_{args.fewnerd_granularity}' if args.fewnerd_granularity != '' else ''}"
         f"/{args.k}shot/"
     )
@@ -35,17 +35,17 @@ def main(args):
         except FileNotFoundError:
             raise FileNotFoundError(f"{target_path} - has this model been trained?")
 
-        if args.fewshot_corpus == "ontonotes":
-            support_set = ONTONOTES(label_name_map=get_label_name_map(args.fewshot_corpus)).to_nway_kshot(
+        if args.corpus == "ontonotes":
+            support_set = ONTONOTES(label_name_map=get_label_name_map(args.corpus)).to_nway_kshot(
                 n=-1, k=args.k, tag_type="ner", seed=split, include_validation=False
             )
         else:
             support_set = ColumnCorpus(
-                data_folder=f"data/fewshot/{args.fewshot_corpus}/{args.k}shot",
+                data_folder=f"data/fewshot/{args.corpus}/{args.k}shot",
                 train_file=f"{split}.txt",
                 sample_missing_splits=False,
                 column_format={0: "text", 1: "ner"},
-                label_name_map=get_label_name_map(args.fewshot_corpus),
+                label_name_map=get_label_name_map(args.corpus),
             )
         print(support_set)
 
