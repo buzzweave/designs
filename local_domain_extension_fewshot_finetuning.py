@@ -23,7 +23,7 @@ def main(args):
 
     base_save_path = Path(
         f"{args.cache_path}/flair-models/fewshot-tart/"
-        f"{args.transformer}_{args.corpus}_{args.lr}_{args.seed}"
+        f"{args.transformer}_{args.corpus}_{args.lr}-{args.seed}"
         f"_pretrained_on_{args.pretraining_corpus}{f'_{args.fewnerd_granularity}' if args.fewnerd_granularity != '' else ''}"
         f"{'_with_early_stopping' if args.early_stopping else ''}"
         f"/{args.k}shot/"
