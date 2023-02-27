@@ -342,7 +342,7 @@ if __name__ == "__main__":
     parser.add_argument("--cache_path", type=str, default="/glusterfs/dfs-gfs-dist/goldejon/flair-models")
     parser.add_argument("--corpus", type=str, default="conll_03")
     parser.add_argument("--fewnerd_granularity", type=str, default="")
-    parser.add_argument("--k", type=list, default=[1])
+    parser.add_argument("--k", type=int, default=1, nargs="+")
     parser.add_argument("--transformer", type=str, default="bert-base-uncased")
     parser.add_argument("--lr", type=float, default=1e-5)
     parser.add_argument("--bs", type=int, default=4)
