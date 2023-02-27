@@ -190,7 +190,7 @@ def main(args):
         # force spans == true, there is one split containing only B-*'s
         label_dictionary.span_labels = True
 
-        pretrained_model_path = f"{args.cache_path}/pretrained-dual-encoder/{args.transformer}_{args.pretraining_corpus}{args.fewnerd_granularity}_{args.pretraing_lr}_{args.seed}/final-model.pt"
+        pretrained_model_path = f"{args.cache_path}/pretrained-dual-encoder/{args.transformer}_{args.pretraining_corpus}{args.fewnerd_granularity}_{args.pretraining_lr}_{args.seed}/final-model.pt"
         model = DualEncoder.load(pretrained_model_path)
         model._init_verbalizers_and_tag_dictionary(tag_dictionary=label_dictionary)
 
