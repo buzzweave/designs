@@ -37,7 +37,7 @@ def main(args):
             target_path = (
                 f"{args.cache_path}/flair-models/pretrained-tart/"
                 f"{args.transformer}_{args.pretraining_corpus}{f'_{args.fewnerd_granularity}' if args.fewnerd_granularity != '' else ''}"
-                f"_{args.lr}-{args.seed}/final-model.pt"
+                f"_{args.lr}_{args.seed}/final-model.pt"
             )
             try:
                 tars_tagger: FewshotClassifier = TARSTagger.load(target_path)
