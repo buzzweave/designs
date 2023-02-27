@@ -31,7 +31,7 @@ def main(args):
     trainer = ModelTrainer(tars_tagger, corpus)
 
     trainer.fine_tune(
-        f"{args.cache_path}/flair-models/pretrained-tart/{args.transformer}_{args.corpus}_{args.label_map_type}_{args.lr}-{args.seed}",
+        f"{args.cache_path}/flair-models/pretrained-tart/{args.transformer}_{args.corpus}_{args.label_map_type}_{args.lr}_{args.seed}",
         learning_rate=args.lr,
         mini_batch_size=args.bs,
         mini_batch_chunk_size=args.mbs,
