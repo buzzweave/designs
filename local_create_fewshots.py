@@ -11,7 +11,6 @@ def main():
     ontonotes()
     fewnerd_fine()
     fewnerd_coarse()
-    print()
 
 
 def conll():
@@ -36,7 +35,7 @@ def conll():
             )
             conll_indices[f"{k}-{seed}"] = indices
 
-    with open("data/fewshot/fewshot_conll.json", "w") as f:
+    with open("data/fewshot/fewshot_conll_03.json", "w") as f:
         json.dump(conll_indices, f)
 
 
@@ -54,7 +53,7 @@ def wnut():
             )
             wnut_indices[f"{k}-{seed}"] = indices
 
-    with open("data/fewshot/fewshot_wnut.json", "w") as f:
+    with open("data/fewshot/fewshot_wnut_17.json", "w") as f:
         json.dump(wnut_indices, f)
 
 
@@ -159,7 +158,7 @@ def fewnerd_coarse():
             )
             fewnerd_indices[f"{k}-{seed}"] = indices
 
-    with open("data/fewshot/fewshot_fewnerd_coarse.json", "w") as f:
+    with open("data/fewshot/fewshot_fewnerdcoarse.json", "w") as f:
         json.dump(fewnerd_indices, f)
 
 
@@ -246,7 +245,7 @@ def fewnerd_fine():
             )
             fewnerd_indices[f"{k}-{seed}"] = indices
 
-    with open("data/fewshot/fewshot_fewnerd_fine.json", "w") as f:
+    with open("data/fewshot/fewshot_fewnerdfine.json", "w") as f:
         json.dump(fewnerd_indices, f)
 
 
