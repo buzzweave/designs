@@ -113,7 +113,7 @@ if __name__ == "__main__":
     parser.add_argument("--k", type=int, default=1, nargs="+")
     parser.add_argument("--transformer", type=str, default="bert-base-uncased")
     parser.add_argument("--use_context", type=bool, default=False)
-    parser.add_argument("--lr", type=float, default=1e-5)
+    parser.add_argument("--lr", type=float, default=5e-5)
     parser.add_argument("--bs", type=int, default=4)
     parser.add_argument("--mbs", type=int, default=4)
     parser.add_argument("--epochs", type=int, default=200)
