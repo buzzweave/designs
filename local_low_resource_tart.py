@@ -7,8 +7,7 @@ import numpy as np
 from torch.utils.data.dataset import Subset
 
 import flair
-from flair.embeddings import TransformerDocumentEmbeddings, TransformerWordEmbeddings
-from flair.models import DualEncoder
+from flair.models import FewshotClassifier, TARSTagger
 from flair.optim import LinearSchedulerWithWarmup
 from flair.trainers import ModelTrainer
 from flair.training_utils import AnnealOnPlateau
@@ -20,7 +19,7 @@ def main(args):
         flair.device = f"cuda:{args.cuda_device}"
 
     save_base_path = Path(
-        f"{args.cache_path}/lowresource-dual-encoder/"
+        f"{args.cache_path}/lowresource-tart/"
         f"{args.transformer}_{args.corpus}{args.fewnerd_granularity}_{args.lr}_{args.seed}/"
     )
 
@@ -33,26 +32,24 @@ def main(args):
     for k in args.k:
         results[f"{k}"] = {"results": []}
         for seed in range(5):
-            flair.set_seed(seed)
             corpus = copy.copy(base_corpus)
             corpus._train = Subset(base_corpus._train, fewshot_indices[f"{k}-{seed}"])
             corpus._dev = Subset(base_corpus._train, [])
 
             tag_type = "ner"
             label_dictionary = corpus.make_label_dictionary(tag_type, add_unk=False)
-            label_dictionary.span_labels = True
 
-            token_encoder = TransformerWordEmbeddings(args.transformer)
-            label_encoder = TransformerDocumentEmbeddings(args.transformer)
-
-            model = DualEncoder(
-                token_encoder=token_encoder,
-                label_encoder=label_encoder,
-                tag_dictionary=label_dictionary,
-                tag_type=tag_type,
+            tars_tagger: FewshotClassifier = TARSTagger(
+                embeddings=args.transformer,
+                num_negative_labels_to_sample=1,
+                prefix=True,
             )
 
-            trainer = ModelTrainer(model, corpus)
+            tars_tagger.add_and_switch_to_new_task(
+                task_name="pretraining", label_dictionary=label_dictionary, label_type="ner", force_switch=True
+            )
+
+            trainer = ModelTrainer(tars_tagger, corpus)
 
             save_path = save_base_path / f"{k}shot_{seed}"
 
@@ -62,13 +59,14 @@ def main(args):
                 mini_batch_size=args.bs,
                 mini_batch_chunk_size=args.mbs,
                 max_epochs=args.epochs,
+                monitor_test=args.monitor_test,
                 scheduler=AnnealOnPlateau if args.early_stopping else LinearSchedulerWithWarmup,
                 train_with_dev=args.early_stopping,
                 min_learning_rate=args.min_lr if args.early_stopping else 0.001,
                 save_final_model=False,
             )
 
-            result = model.evaluate(
+            result = tars_tagger.evaluate(
                 data_points=corpus.test,
                 gold_label_type=tag_type,
                 out_path=f"{save_path}/predictions.txt",
@@ -94,18 +92,19 @@ def main(args):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--cuda", type=bool, default=True)
-    parser.add_argument("--cuda_device", type=int, default=2)
+    parser.add_argument("--cuda_device", type=int, default=0)
     parser.add_argument("--seed", type=int, default=123)
-    parser.add_argument("--cache_path", type=str, default="/glusterfs/dfs-gfs-dist/goldejon/flair-models")
+    parser.add_argument("--cache_path", type=str, default="/glusterfs/dfs-gfs-dist/goldejon")
     parser.add_argument("--corpus", type=str, default="conll_03")
     parser.add_argument("--fewnerd_granularity", type=str, default="")
     parser.add_argument("--k", type=int, default=1, nargs="+")
     parser.add_argument("--transformer", type=str, default="bert-base-uncased")
-    parser.add_argument("--lr", type=float, default=1e-5)
+    parser.add_argument("--lr", type=float, default=5e-5)
     parser.add_argument("--bs", type=int, default=4)
-    parser.add_argument("--mbs", type=int, default=4)
+    parser.add_argument("--mbs", type=int, default=2)
+    parser.add_argument("--monitor_test", type=bool, default=False)
     parser.add_argument("--epochs", type=int, default=200)
     parser.add_argument("--early_stopping", type=bool, default=True)
-    parser.add_argument("--min_lr", type=float, default=1e-7)
+    parser.add_argument("--min_lr", type=float, default=5e-7)
     args = parser.parse_args()
     main(args)

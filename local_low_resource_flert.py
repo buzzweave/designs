@@ -20,7 +20,7 @@ def main(args):
         flair.device = f"cuda:{args.cuda_device}"
 
     save_base_path = Path(
-        f"{args.cache_path}/fewshot-flert/"
+        f"{args.cache_path}/lowresource-flert/"
         f"{args.transformer}_{args.corpus}{args.fewnerd_granularity}_{args.lr}_{args.seed}/"
     )
 
@@ -33,6 +33,7 @@ def main(args):
     for k in args.k:
         results[f"{k}"] = {"results": []}
         for seed in range(5):
+            flair.set_seed(seed)
             corpus = copy.copy(base_corpus)
             corpus._train = Subset(base_corpus._train, fewshot_indices[f"{k}-{seed}"])
             corpus._dev = Subset(base_corpus._train, [])
