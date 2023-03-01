@@ -1352,7 +1352,13 @@ class Corpus(typing.Generic[T_co]):
 
     @staticmethod
     def _sample_n_way_k_shots(
-        dataset: Dataset, labels: List[str], tag_type: str, n: int, k: int, seed: Optional[int] = None
+        dataset: Dataset,
+        labels: List[str],
+        tag_type: str,
+        n: int,
+        k: int,
+        seed: Optional[int] = None,
+        return_indices: bool = False,
     ):
         import random
 
@@ -1385,7 +1391,10 @@ class Corpus(typing.Generic[T_co]):
                 support_set_indices.append(data_point_id)
                 counter = counter_if_data_point_added
 
-        return Subset(dataset, support_set_indices)
+        if not return_indices:
+            return Subset(dataset, support_set_indices)
+        else:
+            return support_set_indices
 
     def obtain_statistics(self, label_type: str = None, pretty_print: bool = True) -> Union[dict, str]:
         """
