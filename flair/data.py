@@ -1372,24 +1372,38 @@ class Corpus(typing.Generic[T_co]):
 
         sentences = [(_idx, _sentence) for _idx, _sentence in enumerate(dataset)]
 
-        while not all(count >= k for count in counter.values()):
-            data_point_id, data_point = random.sample(sentences, k=1)[0]
-            labels_for_data_point = [label.value for label in data_point.get_labels(tag_type)]
-            counter_if_data_point_added = {
-                label: current_count + 1 if label in labels_for_data_point else current_count
-                for label, current_count in counter.items()
-            }
+        completed = False
+        while not completed:
+            max_iter_reached = False
+            current_iter = 0
+            while not all(count >= k for count in counter.values()) and not max_iter_reached:
+                current_iter += 1
+                if current_iter > 1000000:
+                    max_iter_reached = True
+                    seed += 42
+                    random.seed(seed)
+                data_point_id, data_point = random.sample(sentences, k=1)[0]
+                labels_for_data_point = [label.value for label in data_point.get_labels(tag_type)]
+                counter_if_data_point_added = {
+                    label: current_count + labels_for_data_point.count(label)
+                    if label in labels_for_data_point
+                    else current_count
+                    for label, current_count in counter.items()
+                }
 
-            if (
-                any([count >= 2 * k for count in counter_if_data_point_added.values()])
-                or any([label not in counter.keys() for label in labels_for_data_point])
-                or not labels_for_data_point
-            ):
-                continue
+                if (
+                    any([count >= 2 * k for count in counter_if_data_point_added.values()])
+                    or any([label not in counter.keys() for label in labels_for_data_point])
+                    or not labels_for_data_point
+                ):
+                    continue
 
-            else:
-                support_set_indices.append(data_point_id)
-                counter = counter_if_data_point_added
+                else:
+                    support_set_indices.append(data_point_id)
+                    counter = counter_if_data_point_added
+
+            if all(count >= k for count in counter.values()) and not max_iter_reached:
+                completed = True
 
         if not return_indices:
             return Subset(dataset, support_set_indices)
