@@ -991,6 +991,9 @@ class ModelTrainer:
             return_loss=False,
         )
 
+        with open(base_path / "result.txt", "w") as f:
+            f.writelines(test_results.detailed_results)
+
         log.info(test_results.log_line)
         log.info(test_results.detailed_results)
         log_line(log)

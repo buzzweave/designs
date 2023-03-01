@@ -67,7 +67,7 @@ def main(args):
             save_path = save_base_path / f"{k}shot_{seed}"
 
             # 7. run fine-tuning
-            trainer.fine_tune(
+            result = trainer.fine_tune(
                 save_path,
                 learning_rate=args.lr,
                 mini_batch_size=args.bs,
@@ -79,18 +79,7 @@ def main(args):
                 save_final_model=False,
             )
 
-            result = tagger.evaluate(
-                data_points=corpus.test,
-                gold_label_type=tag_type,
-                out_path=f"{save_path}/predictions.txt",
-            )
-            with open(
-                f"{save_path}/result.txt",
-                "w",
-            ) as f:
-                f.writelines(result.detailed_results)
-
-            results[f"{k}"]["results"].append(result.main_score)
+            results[f"{k}"]["results"].append(result["test_score"])
 
     def postprocess_scores(scores: dict):
         rounded_scores = [round(float(score) * 100, 2) for score in scores["results"]]
@@ -118,6 +107,6 @@ if __name__ == "__main__":
     parser.add_argument("--mbs", type=int, default=4)
     parser.add_argument("--epochs", type=int, default=200)
     parser.add_argument("--early_stopping", type=bool, default=True)
-    parser.add_argument("--min_lr", type=float, default=1e-7)
+    parser.add_argument("--min_lr", type=float, default=5e-7)
     args = parser.parse_args()
     main(args)
