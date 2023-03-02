@@ -1,3 +1,5 @@
+from torch.utils.data.dataset import Subset
+
 from flair.datasets import CONLL_03, FEWNERD, ONTONOTES, WNUT_17
 
 
@@ -14,11 +16,17 @@ def get_corpus(corpus: str, fewnerd_granularity: str):
             }
         )
     elif corpus == "conll_03":
-        return CONLL_03(
+        dataset = CONLL_03(
             base_path="data",
             column_format={0: "text", 1: "pos", 2: "chunk", 3: "ner"},
             label_name_map={"PER": "person", "LOC": "location", "ORG": "organization", "MISC": "miscellaneous"},
         )
+        valid_indices = []
+        for idx, sentence in enumerate(dataset.train):
+            if "DOCSTART" not in sentence.text:
+                valid_indices.append(idx)
+        dataset._train = Subset(dataset._train, valid_indices)
+        return dataset
     elif corpus == "ontonotes":
         return ONTONOTES(
             label_name_map={
